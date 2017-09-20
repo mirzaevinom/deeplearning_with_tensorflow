@@ -95,7 +95,7 @@ n_train =  len(mnist.train.labels)
 n_batch = 100
 epoch_size = int(n_train/n_batch)
 
-for i in range(5000):
+for i in range(3*epoch_size):
     # load batch of images and correct answers
     batch_X, batch_Y = mnist.train.next_batch(n_batch)
     lrmin = 0.0001
@@ -106,8 +106,8 @@ for i in range(5000):
     # train
     sess.run(train_step, feed_dict=train_data)
     
-    if i % epoch_size == 0:
-        print('Epoch: ', int(i/epoch_size) )
+    if (i+1) % epoch_size == 0:
+        print('Epoch: ', int(i/epoch_size)+1 )
         
         #Train accuracy and loss function at this epoch
         a,c = sess.run([accuracy, cross_entropy], feed_dict=train_data)
