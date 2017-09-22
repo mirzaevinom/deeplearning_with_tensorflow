@@ -17,13 +17,28 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D, AveragePooling2D
 
 from keras.optimizers import SGD, Adamax
+import numpy as np
+#from tensorflow.examples.tutorials.mnist import input_data as mnist_data
+from sklearn.preprocessing import OneHotEncoder
 
-from tensorflow.examples.tutorials.mnist import input_data as mnist_data
+from mnist import MNIST
+mndata = MNIST('./data')
+train = mndata.load_training()
+test = mndata.load_testing()
 
+enc = OneHotEncoder(sparse=False)
+
+X_train = np.array( train[0] ).reshape(-1,28,28,1)
+y_train = enc.fit_transform(np.array( train[1] ).reshape(-1,1) )
+
+enc = OneHotEncoder(sparse=False)
+
+X_test = np.array( test[0] ).reshape(-1,28,28,1)
+y_test = enc.fit_transform( np.array( test[1] ).reshape(-1,1) )
 
 
 def MLP_with_dropout(n_epoch=10):
-    mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
+    #mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
     model = Sequential()
     model.add( Dense(200, input_dim= 28*28 , activation='relu' ) )
     model.add(Dropout(0.25))
@@ -47,13 +62,13 @@ def MLP_with_dropout(n_epoch=10):
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
     
-    X_train = mnist.train.images.reshape(-1,28*28)
-    y_train =  mnist.train.labels
+    #X_train = mnist.train.images.reshape(-1,28*28)
+    #y_train =  mnist.train.labels
     model.fit(X_train, y_train, epochs=n_epoch, batch_size=100 )
     
     
-    X_test = mnist.test.images.reshape(-1,28*28)
-    y_test = mnist.test.labels
+    #X_test = mnist.test.images.reshape(-1,28*28)
+    #y_test = mnist.test.labels
     score= model.evaluate(X_test, y_test)
     print( ' - Test loss: ', round(score[0], 4) , ' - Test acc: ', round(score[-1], 4)  )
     
@@ -62,7 +77,7 @@ def MLP_with_dropout(n_epoch=10):
 
 def convolution_NN(n_epoch=3):
     
-    mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
+    #mnist = mnist_data.read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
     
     model = Sequential()
     model.add( Conv2D(6, (6, 6), activation='relu', input_shape=(28, 28, 1), padding='same') )
@@ -83,23 +98,35 @@ def convolution_NN(n_epoch=3):
         
     
     #sgd = SGD(lr=0.1 ,decay=1e-3, momentum=0.9, nesterov=True)
-    adam = Adamax(lr=0.01, decay=1e-2)
+    adam = Adamax(lr=0.003, decay=1e-3)
     model.compile(optimizer=adam,
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
     
-    X_train = mnist.train.images
-    y_train =  mnist.train.labels
-    model.fit(X_train, y_train, epochs=n_epoch, batch_size=100 )
+    #X_train = mnist.train.images
+    #y_train =  mnist.train.labels
+    model.fit(X_train, y_train, epochs=n_epoch, batch_size=100, verbose=2 )
     
     
-    X_test = mnist.test.images
-    y_test = mnist.test.labels
-    score= model.evaluate(X_test, y_test)
-    print( ' - Test loss: ', round(score[0], 4) , ' - Test acc: ', round(score[-1], 4)  )
+    #X_test = mnist.test.images
+    #y_test = mnist.test.labels
+    score= model.evaluate(X_test, y_test, verbose=0)
+
+    print( 'Test loss: ', round(score[0], 4) , 'Test acc: ', round(score[-1], 4)  )
+
+    return score
+
     
     
     
 if __name__=='__main__':
     #MLP_with_dropout()
-    convolution_NN()
+    import time
+    start= time.time()
+    
+    score = convolution_NN()
+
+    end = time.time()
+
+    
+    print('Time elapsed: ', round((end-start)/60,2), ' minutes' )
